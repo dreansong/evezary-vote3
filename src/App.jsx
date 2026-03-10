@@ -171,9 +171,9 @@ function MainApp({ onAdmin }) {
 
         {/* HEADER */}
         <div style={{textAlign:"center",padding:"36px 0 24px",animation:"fadeUp .8s ease both"}}>
-          <div style={S.badge}>🌱 EVEZARY · 공익재단 네이밍 공모 · 2026</div>
-          <h1 style={S.h1}>재단 이름을 <span style={{color:"#7CB342"}}>한 표</span>로,<br/>숲을 <span style={{color:"#D4AC50"}}>1만 원</span>으로 키워주세요</h1>
-          <p style={S.subp}>대한민국 1호 산림탄소상쇄 기업 이브자리 공익재단<br/>이름 투표 + 나무 한 그루 후원 캠페인</p>
+          <div style={S.badge}>🌱 EVEZARY · 산림특화 공익재단 네이밍 공모 · 2026</div>
+          <h1 style={S.h1}>재단 이름을 <span style={{color:"#7CB342"}}>한 표</span>로,<br/>이브자리 숲조성 위한 공익재단<span style={{color:"#D4AC50"}}>1만 원</span>으로 후원동참해주세요</h1>
+          <p style={S.subp}>대한민국 1호 산림탄소상쇄 기업 이브자리 공익재단<br/>이름 투표 + 숲조성 공익재단 후원 캠페인</p>
           {!loading && (
             <div style={{display:"flex",justifyContent:"center",gap:24,marginTop:18,flexWrap:"wrap"}}>
               {[
@@ -197,8 +197,8 @@ function MainApp({ onAdmin }) {
             <ShimmerBg/>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,gap:12}}>
               <div>
-                <div style={S.cardTag}>🌳 1그루 후원 캠페인</div>
-                <div style={S.cardTitle}>내 이름 나무 한 그루<br/>심기에 참여해주세요</div>
+                <div style={S.cardTag}>🌳 1그루를 심는 마음으로 후원 캠페인</div>
+                <div style={S.cardTitle}>공익재단 후원약정<br/>이브자리 공익재단 후원 참여해주세요</div>
                 <div style={S.cardDesc}>버튼 1회 클릭 = <span style={{color:"#D4AC50",fontWeight:600}}>1만원 후원 의향</span> 등록<br/>재단 출범 첫 기부자 명단에 영구 등재됩니다</div>
               </div>
               <div style={{textAlign:"right",flexShrink:0}}>
