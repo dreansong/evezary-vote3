@@ -125,7 +125,7 @@ function MainApp({ onAdmin }) {
 
   async function submitVote() {
     if (!selected || submittingV) return;
-    if (!voterName.trim()) { alert("이름을 입력해주세요."); return; }
+    if (!voterName.trim()) { alert("이름(대리점명)을 입력해주세요."); return; }
     setSubmittingV(true);
     try {
       await fbAddVote(voterName.trim(), selected, voteReason.trim());
@@ -139,7 +139,7 @@ function MainApp({ onAdmin }) {
 
   async function submitDonate() {
     if (donating) return;
-    if (!donorName.trim()) { alert("이름을 입력해주세요."); return; }
+    if (!donorName.trim()) { alert("이름(대리점명)을 입력해주세요."); return; }
     setDonating(true);
     setDonateAnim(true); setTimeout(()=>setDonateAnim(false), 600);
     const fid = floatId.current++;
