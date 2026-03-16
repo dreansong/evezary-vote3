@@ -16,10 +16,10 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 const CANDIDATES = [
-  { id:"a", name:"이브의숲1호재단",         en:"EVE FOREST No.1 Foundation",        color:"#2E6B3E", accent:"#4CAF50" },
-  { id:"b", name:"이브탄소숲1호재단",        en:"EVE CARBON FOREST No.1 Foundation", color:"#1B5E20", accent:"#388E3C" },
-  { id:"c", name:"이브꿈의숲재단",           en:"EVE DREAM FOREST Foundation",        color:"#33691E", accent:"#7CB342" },
-  { id:"d", name:"이브슬립숲재단",           en:"EVE SLEEP FOREST Foundation",        color:"#37474F", accent:"#78909C" },
+  { id:"a", name:"이브자리숲1호재단",         en:"EVE FOREST No.1 Foundation",        color:"#2E6B3E", accent:"#4CAF50" },
+  { id:"b", name:"이브자리탄소숲1호재단",        en:"EVE CARBON FOREST No.1 Foundation", color:"#1B5E20", accent:"#388E3C" },
+  { id:"c", name:"이브자리꿈의숲재단",           en:"EVE DREAM FOREST Foundation",        color:"#33691E", accent:"#7CB342" },
+  { id:"d", name:"이브자리공원만들기재단",           en:"EVE SLEEP FOREST Foundation",        color:"#37474F", accent:"#78909C" },
   { id:"e", name:"이브자리탄소상쇄숲1호재단", en:"EVEZARY Carbon Offset Forest No.1",  color:"#4E342E", accent:"#8D6E63" },
 ];
 
@@ -314,7 +314,7 @@ function MainApp({ onAdmin }) {
               })}
             </div>
 
-            <textarea value={voteReason} onChange={e=>setVoteReason(e.target.value)} placeholder="이 이름을 선택한 이유를 남겨주세요 (선택, 최대 100자)" maxLength={100} rows={2} style={{...S.input,resize:"none",lineHeight:1.6,marginBottom:12}}/>
+            <textarea value={voteReason} onChange={e=>setVoteReason(e.target.value)} placeholder="이 이름을 선택한 이유 또는 다른 추천이름를 남겨주세요 (선택, 최대 100자)" maxLength={100} rows={2} style={{...S.input,resize:"none",lineHeight:1.6,marginBottom:12}}/>
 
             <button onClick={submitVote} disabled={submittingV||!selected} className="chov" style={{width:"100%",padding:"15px",background:(!selected||submittingV)?"rgba(76,175,80,.25)":"linear-gradient(135deg,#2E6B3E,#4CAF50)",border:"none",borderRadius:13,color:"#fff",fontSize:14,fontWeight:700,letterSpacing:1.5,cursor:(!selected||submittingV)?"not-allowed":"pointer",fontFamily:"'Noto Sans KR',sans-serif",boxShadow:selected?"0 6px 20px rgba(76,175,80,.35)":"none",position:"relative",overflow:"hidden",transition:"all .2s"}}>
               {submittingV?"⏳ 제출 중...":selected?`「${CANDIDATES.find(c=>c.id===selected)?.name}」에 투표하기 →`:"후보를 선택해주세요"}
