@@ -16,10 +16,10 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 const CANDIDATES = [
-  { id:"a", name:"이브자리숲1호재단",         en:"EVE FOREST No.1 Foundation",        color:"#2E6B3E", accent:"#4CAF50" },
-  { id:"b", name:"이브자리탄소숲1호재단",        en:"EVE CARBON FOREST No.1 Foundation", color:"#1B5E20", accent:"#388E3C" },
-  { id:"c", name:"이브자리꿈의숲재단",           en:"EVE DREAM FOREST Foundation",        color:"#33691E", accent:"#7CB342" },
-  { id:"d", name:"이브자리공원만들기재단",           en:"EVE SLEEP FOREST Foundation",        color:"#37474F", accent:"#78909C" },
+  { id:"a", name:"이브자리숲1호재단",         en:"EVEZARY FOREST No.1 Foundation",        color:"#2E6B3E", accent:"#4CAF50" },
+  { id:"b", name:"이브자리탄소숲1호재단",        en:"EVEZARY CARBON FOREST No.1 Foundation", color:"#1B5E20", accent:"#388E3C" },
+  { id:"c", name:"이브자리꿈의숲재단",           en:"EVEZARY DREAM FOREST Foundation",        color:"#33691E", accent:"#7CB342" },
+  { id:"d", name:"이브자리시민의숲재단",           en:"EVEZARY Citizens' FOREST Foundation",        color:"#37474F", accent:"#78909C" },
   { id:"e", name:"이브자리탄소상쇄숲1호재단", en:"EVEZARY Carbon Offset Forest No.1",  color:"#4E342E", accent:"#8D6E63" },
 ];
 
