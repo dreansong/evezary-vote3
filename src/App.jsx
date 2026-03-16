@@ -228,7 +228,7 @@ function MainApp({ onAdmin }) {
               })}
             </div>
 
-            <input value={donorName} onChange={e=>setDonorName(e.target.value)} placeholder="후원자 이름을 입력해주세요 (필수)" maxLength={20} style={{...S.input,marginBottom:10}}/>
+            <input value={donorName} onChange={e=>setDonorName(e.target.value)} placeholder="후원자 이름(대리점명)을 입력해주세요 (필수)" maxLength={20} style={{...S.input,marginBottom:10}}/>
 
             {myDonation>0 && (
               <div style={{...S.myBadge,marginBottom:12}}>
