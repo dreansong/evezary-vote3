@@ -1,4 +1,4 @@
-// ✅ Firebase 설정값이 입력된 최종 완성본
+// ✅ Cloudinary 사진 업로드 + Firebase Firestore 연동 완성본
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, orderBy, query, increment } from "firebase/firestore";
 import { useState, useEffect, useRef } from "react";
@@ -14,6 +14,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
+
+// ── Cloudinary 설정 ──────────────────────────────────────
+const CLOUDINARY_CLOUD = "djnqo6kgj";
+const CLOUDINARY_PRESET = "evevary_event";
 
 const CANDIDATES = [
   { id:"a", name:"이브자리숲1호재단",         en:"EVEZARY FOREST No.1 Foundation",        color:"#2E6B3E", accent:"#4CAF50" },
@@ -79,16 +83,72 @@ async function fbLoadDonations() {
   return snaps.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+// ── 조성지 데이터 ──────────────────────────────────────────
+const SITES = [
+  { id:"s0", icon:"🌲", year:1987, label:"기업림 육림활동",         loc:"양평",    trees:15020, area:"육림", desc:"1987~2013년 기업림 육림활동 15,020주" },
+  { id:"s1", icon:"🏔️", year:2014, label:"양평기업림 탄소상쇄숲",   loc:"양평",    trees:1000,  area:"9.97ha", desc:"2014년 조성, 9.97ha" },
+  { id:"s2", icon:"🌳", year:2014, label:"암사동 탄소상쇄숲 공원",   loc:"강동구",  trees:900,   area:"0.54ha", desc:"강동구 2014년, 0.54ha" },
+  { id:"s3", icon:"🌿", year:2015, label:"둔촌동 탄소상쇄숲 공원",   loc:"강동구",  trees:443,   area:"0.39ha", desc:"강동구 2015년, 0.39ha" },
+  { id:"s4", icon:"🍃", year:2016, label:"내곡동 탄소상쇄숲 공원",   loc:"서초구",  trees:1000,  area:"0.63ha", desc:"서초구 2016년, 0.63ha" },
+  { id:"s5", icon:"🏞️", year:2017, label:"강서한강 탄소상쇄숲 공원", loc:"한강사업부",trees:4000, area:"5.64ha", desc:"서울시 한강사업부 2017~2021년 5년간, 5.64ha" },
+  { id:"s6", icon:"🌱", year:2023, label:"제방녹지공원",             loc:"동대문구", trees:25,    area:"제방",   desc:"동대문구 2023년" },
+  { id:"s7", icon:"💧", year:2024, label:"양수리 탄소저감숲",        loc:"한강유역청",trees:2005, area:"0.61ha", desc:"한강유역청 2024년, 0.61ha" },
+  { id:"s8", icon:"🌸", year:2024, label:"보라매공원 새록새록 정원", loc:"보라매공원",trees:2000, area:"200평",  desc:"새록새록 정원 200평, 2,000주 식재기증" },
+];
+const REQUIRED_VISITS = 5;
+const EVENT_ADMIN_PW = "evezary2026";
+
+// Firebase helpers for event
+// Cloudinary — 사진 업로드 후 URL 반환
+async function fbUploadPhoto(siteId, file, submissionId, onProgress) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_PRESET);
+  formData.append("folder", `evezary-event/${submissionId}`);
+  formData.append("public_id", siteId);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress && onProgress(siteId, Math.round((e.loaded / e.total) * 100));
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const res = JSON.parse(xhr.responseText);
+        resolve(res.secure_url);
+      } else {
+        reject(new Error(`업로드 실패: ${xhr.statusText}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error("네트워크 오류"));
+    xhr.send(formData);
+  });
+}
+
+async function fbSubmitEvent(data) {
+  await addDoc(collection(db, "events"), { ...data, ts: nowStr(), createdAt: Date.now() });
+}
+async function fbLoadEvents() {
+  const q = query(collection(db, "events"), orderBy("createdAt", "desc"));
+  const snaps = await getDocs(q);
+  return snaps.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 // ─────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState("main");
   return page === "admin"
     ? <AdminPanel onBack={() => setPage("main")} />
-    : <MainApp onAdmin={() => setPage("admin")} />;
+    : page === "event"
+    ? <EventPage onBack={() => setPage("main")} />
+    : <MainApp onAdmin={() => setPage("admin")} onEvent={() => setPage("event")} />;
 }
 
 // ─────────────────────────────────────────────────────────
-function MainApp({ onAdmin }) {
+function MainApp({ onAdmin, onEvent }) {
   const [summary,       setSummary]       = useState({ votes:{}, donationTotal:0 });
   const [recentVotes,   setRecentVotes]   = useState([]);
   const [recentDonates, setRecentDonates] = useState([]);
@@ -188,6 +248,21 @@ function MainApp({ onAdmin }) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* ── 이벤트 배너 ── */}
+        <div onClick={onEvent} className="chov" style={{background:"linear-gradient(135deg,#0d3320,#1a5c38)",border:"1px solid rgba(76,175,80,.35)",borderRadius:18,padding:"16px 20px",marginBottom:16,cursor:"pointer",animation:"fadeUp .6s .05s ease both",boxShadow:"0 4px 24px rgba(46,107,62,.3)"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+            <div>
+              <div style={{fontSize:10,color:"#7CB342",letterSpacing:3,fontWeight:600,marginBottom:5}}>🗺️ 탄소상쇄숲 방문 인증 이벤트</div>
+              <div style={{fontFamily:"'Noto Serif KR',serif",fontSize:15,fontWeight:700,color:"#e8f5e9",lineHeight:1.4}}>10곳 중 5곳 방문하고<br/><span style={{color:"#7CB342"}}>인증사진 제출</span>하면 경품 증정!</div>
+              <div style={{fontSize:11,color:"rgba(232,245,233,.45)",marginTop:5}}>총 26,393주 · 17.87ha · 축구장 약 22개 규모</div>
+            </div>
+            <div style={{textAlign:"center",flexShrink:0}}>
+              <div style={{fontSize:36}}>🌲</div>
+              <div style={{fontSize:11,color:"#7CB342",fontWeight:700,marginTop:4}}>참여하기 →</div>
+            </div>
+          </div>
         </div>
 
         {loading ? <Loader/> : (<>
@@ -517,6 +592,363 @@ function AdminPanel({ onBack }) {
             <button onClick={loadAdminData} style={{...S.refreshBtn,marginTop:12}}>🔄 새로고침</button>
           </>)}
         </>)}
+        <Footer/>
+      </div>
+    </div>
+  );
+}
+
+// ── 공통 컴포넌트 ─────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+function EventPage({ onBack }) {
+  const [step, setStep]         = useState("intro");
+  const [name, setName]         = useState("");
+  const [phone, setPhone]       = useState("");
+  const [checked, setChecked]   = useState([]);
+  const [photos, setPhotos]     = useState({});      // {siteId: File}
+  const [previews, setPreviews] = useState({});      // {siteId: dataURL}
+  const [progress, setProgress] = useState({});      // {siteId: 0~100}
+  const [uploading, setUploading] = useState(false);
+  const [uploadStep, setUploadStep] = useState("");  // 진행 메시지
+  const [submissions, setSubmissions] = useState([]);
+  const [loadingSubs, setLoadingSubs] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [adminPw, setAdminPw]   = useState("");
+  const [adminOk, setAdminOk]   = useState(false);
+  const [pwErr, setPwErr]       = useState(false);
+
+  const toggleSite = (id) => {
+    setChecked(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const handlePhoto = (siteId, file) => {
+    if (!file) return;
+    setPhotos(prev => ({ ...prev, [siteId]: file }));
+    const reader = new FileReader();
+    reader.onload = e => setPreviews(prev => ({ ...prev, [siteId]: e.target.result }));
+    reader.readAsDataURL(file);
+  };
+
+  const canSubmit = checked.length >= REQUIRED_VISITS &&
+    checked.every(id => previews[id]) &&
+    name.trim() && phone.trim();
+
+  async function submitEvent() {
+    if (!canSubmit || uploading) return;
+    setUploading(true);
+
+    try {
+      // 1단계: Firestore에 임시 문서 생성 → ID 획득
+      setUploadStep("📋 제출 정보 등록 중...");
+      const submissionId = `${Date.now()}_${name.trim().replace(/\s/g,"")}`;
+
+      // 2단계: 사진 순차 업로드
+      const photoURLs = {};
+      for (const siteId of checked) {
+        const file = photos[siteId];
+        if (!file) continue;
+        const site = SITES.find(s => s.id === siteId);
+        setUploadStep(`📷 사진 업로드 중... ${site.label}`);
+        photoURLs[siteId] = await fbUploadPhoto(
+          siteId, file, submissionId,
+          (sid, pct) => setProgress(prev => ({ ...prev, [sid]: pct }))
+        );
+      }
+
+      // 3단계: Firestore에 최종 저장
+      setUploadStep("✅ 최종 저장 중...");
+      const visitedSites = checked.map(id => {
+        const s = SITES.find(x => x.id === id);
+        return `${s.label}(${s.year})`;
+      }).join(", ");
+
+      await fbSubmitEvent({
+        submissionId,
+        name: name.trim(),
+        phone: phone.trim(),
+        visitedSites,
+        visitCount: checked.length,
+        photoURLs,
+        photoCount: Object.keys(photoURLs).length,
+      });
+
+      setStep("done");
+    } catch(e) {
+      console.error(e);
+      alert("제출 오류가 발생했습니다. 잠시 후 다시 시도해주세요.\n" + e.message);
+    }
+    setUploading(false);
+    setUploadStep("");
+  }
+
+  async function loadSubmissions() {
+    setLoadingSubs(true);
+    try { setSubmissions(await fbLoadEvents()); }
+    catch(e) { console.error(e); }
+    setLoadingSubs(false);
+  }
+
+  function loginAdmin() {
+    if (adminPw === EVENT_ADMIN_PW) { setAdminOk(true); setPwErr(false); loadSubmissions(); }
+    else setPwErr(true);
+  }
+
+  function dlEventsCSV() {
+    const bom = "\uFEFF";
+    const rows = [["번호","이름","연락처","방문 조성지","방문수","사진수","제출일시"]];
+    submissions.forEach((r,i) => rows.push([i+1, r.name, r.phone, r.visitedSites, r.visitCount, r.photoCount, r.ts]));
+    const csv = bom + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
+    a.download = "evezary_event.csv"; a.click();
+  }
+
+  const totalTrees = SITES.reduce((a,s) => a + s.trees, 0);
+
+  return (
+    <div style={S.root}>
+      <BgLayer/><Styles/>
+      <div style={S.wrap}>
+
+        {/* 헤더 */}
+        <div style={{display:"flex",alignItems:"center",gap:12,padding:"24px 0 8px"}}>
+          <button onClick={onBack} style={{background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.12)",borderRadius:8,color:"rgba(232,245,233,.7)",fontSize:13,padding:"6px 14px",cursor:"pointer",fontFamily:"'Noto Sans KR',sans-serif"}}>← 돌아가기</button>
+          <div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:20,color:"#e8f5e9",letterSpacing:3,fontStyle:"italic"}}>EVEZARY</div>
+            <div style={{fontSize:10,color:"rgba(232,245,233,.3)",letterSpacing:3}}>탄소상쇄숲 방문 인증 이벤트</div>
+          </div>
+        </div>
+
+        {step === "done" ? (
+          <Card style={{textAlign:"center",padding:"40px 24px",animation:"popIn .5s ease both"}}>
+            <div style={{fontSize:56,marginBottom:16}}>🎉</div>
+            <div style={{fontFamily:"'Noto Serif KR',serif",fontSize:22,fontWeight:700,color:"#7CB342",marginBottom:10}}>제출 완료!</div>
+            <div style={{fontSize:14,color:"rgba(232,245,233,.6)",lineHeight:1.8,marginBottom:24}}>
+              <strong style={{color:"#e8f5e9"}}>{name}</strong>님의 방문 인증이 접수되었습니다.<br/>
+              검토 후 경품 증정 안내 연락을 드립니다.<br/>
+              <span style={{fontSize:12,color:"rgba(232,245,233,.35)"}}>연락처: {phone}</span>
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginBottom:24}}>
+              {checked.map(id => {
+                const s = SITES.find(x => x.id === id);
+                return <span key={id} style={{fontSize:12,padding:"4px 12px",borderRadius:20,background:"rgba(76,175,80,.15)",color:"#7CB342",border:"1px solid rgba(76,175,80,.3)"}}>{s.icon} {s.label}</span>;
+              })}
+            </div>
+            <button onClick={onBack} style={S.goldBtn}>메인으로 돌아가기</button>
+          </Card>
+        ) : (
+          <>
+            {/* 이벤트 소개 */}
+            <Card style={{marginBottom:14,animation:"fadeUp .6s ease both"}}>
+              <ShimmerBg/>
+              <div style={{fontSize:10,color:"#7CB342",letterSpacing:3,fontWeight:600,marginBottom:8}}>🌲 이벤트 개요</div>
+              <div style={{fontFamily:"'Noto Serif KR',serif",fontSize:18,fontWeight:700,color:"#fff",lineHeight:1.5,marginBottom:10}}>
+                이브자리가 심은 숲을 직접 걸어보세요
+              </div>
+              <div style={{fontSize:13,color:"rgba(232,245,233,.55)",lineHeight:1.8,marginBottom:14}}>
+                40년간 조성한 탄소상쇄숲 10곳 중 <strong style={{color:"#7CB342"}}>5곳 이상</strong> 방문 후<br/>
+                각 장소에서 찍은 인증사진을 제출하시면 경품을 드립니다.
+              </div>
+              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                {[
+                  {icon:"🌳", val:`${totalTrees.toLocaleString()}주`, label:"총 식재"},
+                  {icon:"🗺️", val:"17.87ha", label:"총 면적"},
+                  {icon:"⚽", val:"약 22개", label:"축구장 크기"},
+                  {icon:"📍", val:"10곳", label:"조성지"},
+                ].map(({icon,val,label}) => (
+                  <div key={label} style={{flex:1,minWidth:70,background:"rgba(76,175,80,.07)",border:"1px solid rgba(76,175,80,.15)",borderRadius:12,padding:"12px 8px",textAlign:"center"}}>
+                    <div style={{fontSize:18,marginBottom:4}}>{icon}</div>
+                    <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,fontWeight:600,color:"#7CB342"}}>{val}</div>
+                    <div style={{fontSize:10,color:"rgba(232,245,233,.3)",marginTop:2,letterSpacing:1}}>{label}</div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* 조성지 목록 */}
+            <Card style={{marginBottom:14,animation:"fadeUp .6s .1s ease both"}}>
+              <div style={{fontSize:10,color:"#D4AC50",letterSpacing:3,fontWeight:600,marginBottom:12}}>
+                📍 방문 조성지 선택 <span style={{color:"rgba(232,245,233,.4)",fontWeight:400}}>({checked.length}/{REQUIRED_VISITS}곳 이상 선택)</span>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {SITES.map((s, i) => {
+                  const sel = checked.includes(s.id);
+                  return (
+                    <div key={s.id} style={{animation:`fadeUp .4s ${i*0.05+.1}s ease both`,animationFillMode:"forwards",opacity:0}}>
+                      <div
+                        onClick={() => toggleSite(s.id)}
+                        className="chov"
+                        style={{
+                          background: sel ? "rgba(76,175,80,.12)" : "rgba(255,255,255,.03)",
+                          border: `1.5px solid ${sel ? "#4CAF50" : "rgba(255,255,255,.08)"}`,
+                          borderRadius: 13, padding: "12px 14px", cursor: "pointer",
+                          boxShadow: sel ? "0 2px 12px rgba(76,175,80,.2)" : "none",
+                        }}
+                      >
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div style={{width:22,height:22,borderRadius:"50%",flexShrink:0,border:`2px solid ${sel?"#4CAF50":"rgba(255,255,255,.2)"}`,background:sel?"#4CAF50":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>
+                            {sel ? "✓" : ""}
+                          </div>
+                          <div style={{fontSize:22,flexShrink:0}}>{s.icon}</div>
+                          <div style={{flex:1}}>
+                            <div style={{display:"flex",alignItems:"baseline",gap:8,flexWrap:"wrap"}}>
+                              <span style={{fontFamily:"'Noto Serif KR',serif",fontSize:14,fontWeight:700,color:sel?"#7CB342":"#c8e6c9"}}>{s.label}</span>
+                              <span style={{fontSize:11,color:"rgba(232,245,233,.35)"}}>{s.year}년 · {s.loc}</span>
+                            </div>
+                            <div style={{fontSize:11,color:"rgba(232,245,233,.4)",marginTop:3}}>{s.trees.toLocaleString()}주 · {s.area}</div>
+                          </div>
+                          <div style={{fontSize:11,color:sel?"#7CB342":"rgba(232,245,233,.25)",fontWeight:600}}>{sel?"선택됨":"선택"}</div>
+                        </div>
+                      </div>
+                      {/* 사진 업로드 — 선택된 경우만 표시 */}
+                      {sel && (
+                        <div style={{marginTop:8,marginLeft:44,animation:"fadeUp .3s ease both"}}>
+                          <label style={{display:"block",cursor:"pointer"}}>
+                            {previews[s.id] ? (
+                              <div style={{position:"relative",display:"inline-block"}}>
+                                <img src={previews[s.id]} alt="인증" style={{width:"100%",maxWidth:280,height:120,objectFit:"cover",borderRadius:10,border:"2px solid #4CAF50"}}/>
+                                <div style={{position:"absolute",top:6,right:6,background:"rgba(76,175,80,.85)",borderRadius:6,padding:"2px 8px",fontSize:11,color:"#fff",fontWeight:600}}>✓ 사진 등록</div>
+                              </div>
+                            ) : (
+                              <div style={{border:"1.5px dashed rgba(76,175,80,.4)",borderRadius:10,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,background:"rgba(76,175,80,.04)"}}>
+                                <span style={{fontSize:22}}>📷</span>
+                                <div>
+                                  <div style={{fontSize:13,color:"#7CB342",fontWeight:600}}>인증사진 첨부 (필수)</div>
+                                  <div style={{fontSize:11,color:"rgba(232,245,233,.35)"}}>클릭하여 사진 선택</div>
+                                </div>
+                              </div>
+                            )}
+                            <input type="file" accept="image/*" capture="environment" onChange={e => handlePhoto(s.id, e.target.files[0])} style={{display:"none"}}/>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            {/* 참가자 정보 */}
+            <Card style={{marginBottom:14,animation:"fadeUp .6s .2s ease both"}}>
+              <div style={{fontSize:10,color:"#D4AC50",letterSpacing:3,fontWeight:600,marginBottom:12}}>👤 참가자 정보</div>
+              <input value={name} onChange={e=>setName(e.target.value)} placeholder="이름 (필수)" maxLength={20} style={{...S.input,marginBottom:10}}/>
+              <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="연락처 — 010-0000-0000 (필수)" maxLength={20} style={{...S.input}}/>
+            </Card>
+
+            {/* 제출 버튼 */}
+            <div style={{marginBottom:8}}>
+              {checked.length < REQUIRED_VISITS && (
+                <div style={{textAlign:"center",fontSize:12,color:"rgba(232,245,233,.4)",marginBottom:10}}>
+                  {REQUIRED_VISITS - checked.length}곳 더 선택해주세요 ({checked.length}/{REQUIRED_VISITS})
+                </div>
+              )}
+              {checked.length >= REQUIRED_VISITS && !checked.every(id => previews[id]) && (
+                <div style={{textAlign:"center",fontSize:12,color:"#FF7043",marginBottom:10}}>
+                  📷 선택한 모든 조성지에 인증사진을 첨부해주세요
+                </div>
+              )}
+              {/* 업로드 진행 표시 */}
+              {uploading && (
+                <div style={{marginBottom:14,padding:"14px 16px",background:"rgba(76,175,80,.08)",border:"1px solid rgba(76,175,80,.25)",borderRadius:12}}>
+                  <div style={{fontSize:13,color:"#7CB342",fontWeight:600,marginBottom:10}}>{uploadStep}</div>
+                  {checked.map(id => {
+                    const s = SITES.find(x => x.id === id);
+                    const pct = progress[id] || 0;
+                    return (
+                      <div key={id} style={{marginBottom:7}}>
+                        <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"rgba(232,245,233,.5)",marginBottom:3}}>
+                          <span>{s.icon} {s.label}</span>
+                          <span>{pct === 100 ? "✅ 완료" : pct > 0 ? `${pct}%` : "대기중"}</span>
+                        </div>
+                        <div style={{height:4,background:"rgba(255,255,255,.07)",borderRadius:2,overflow:"hidden"}}>
+                          <div style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#2E6B3E,#4CAF50)",borderRadius:2,transition:"width .3s ease"}}/>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <button
+                onClick={submitEvent}
+                disabled={!canSubmit || uploading}
+                className="chov"
+                style={{
+                  width:"100%",padding:"17px",
+                  background: canSubmit && !uploading ? "linear-gradient(135deg,#2E6B3E,#4CAF50)" : "rgba(76,175,80,.2)",
+                  border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:700,
+                  letterSpacing:1.5,cursor:canSubmit&&!uploading?"pointer":"not-allowed",
+                  fontFamily:"'Noto Sans KR',sans-serif",
+                  boxShadow:canSubmit&&!uploading?"0 6px 20px rgba(76,175,80,.35)":"none",
+                  position:"relative",overflow:"hidden",transition:"all .2s"
+                }}
+              >
+                {uploading ? `⏳ ${uploadStep||"업로드 중..."}` : canSubmit ? `🌲 인증 제출하기 (${checked.length}곳 방문)` : "조건을 충족해주세요"}
+                {canSubmit && !uploading && <Shimmer/>}
+              </button>
+              <div style={{textAlign:"center",marginTop:8,fontSize:11,color:"rgba(232,245,233,.25)"}}>※ 제출 후 담당자 검토 → 경품 발송 안내 연락</div>
+            </div>
+
+            {/* 관리자 링크 */}
+            <div style={{textAlign:"center",marginTop:14}}>
+              {!showAdmin ? (
+                <button onClick={()=>setShowAdmin(true)} style={{background:"none",border:"none",fontSize:11,color:"rgba(232,245,233,.2)",cursor:"pointer",letterSpacing:2,textDecoration:"underline",fontFamily:"'Noto Sans KR',sans-serif"}}>이벤트 관리자</button>
+              ) : (
+                <Card style={{marginTop:8}}>
+                  {!adminOk ? (
+                    <>
+                      <input type="password" value={adminPw} onChange={e=>setAdminPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&loginAdmin()} placeholder="관리자 비밀번호" style={{...S.input,marginBottom:8}}/>
+                      {pwErr && <div style={{fontSize:12,color:"#ef5350",marginBottom:8}}>비밀번호가 올바르지 않습니다.</div>}
+                      <button onClick={loginAdmin} style={S.goldBtn}>로그인 →</button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                        <div style={{fontSize:13,color:"#7CB342",fontWeight:600}}>이벤트 참가 현황 ({submissions.length}건)</div>
+                        <div style={{display:"flex",gap:8}}>
+                          <button onClick={loadSubmissions} style={S.exportBtn}>🔄 새로고침</button>
+                          <button onClick={dlEventsCSV} style={S.exportBtn}>⬇ CSV</button>
+                        </div>
+                      </div>
+                      {loadingSubs ? <Loader/> : (
+                        <div style={{maxHeight:360,overflowY:"auto",display:"flex",flexDirection:"column",gap:7}}>
+                          {submissions.map((r,i) => (
+                            <div key={i} style={{padding:"10px 12px",background:"rgba(76,175,80,.06)",borderRadius:10,borderLeft:"3px solid #4CAF50"}}>
+                              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                                <span style={{fontSize:13,fontWeight:600,color:"#e8f5e9"}}>{r.name}</span>
+                                <span style={{fontSize:11,color:"#7CB342"}}>{r.visitCount}곳 방문</span>
+                              </div>
+                              <div style={{fontSize:11,color:"rgba(232,245,233,.4)",marginBottom:3}}>{r.phone}</div>
+                              <div style={{fontSize:11,color:"rgba(232,245,233,.35)",lineHeight:1.6,marginBottom:6}}>{r.visitedSites}</div>
+                              {/* 사진 썸네일 */}
+                              {r.photoURLs && Object.keys(r.photoURLs).length > 0 && (
+                                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:4}}>
+                                  {Object.entries(r.photoURLs).map(([sid, url]) => {
+                                    const site = SITES.find(s => s.id === sid);
+                                    return (
+                                      <a key={sid} href={url} target="_blank" rel="noreferrer" style={{textDecoration:"none"}}>
+                                        <div style={{position:"relative"}}>
+                                          <img src={url} alt={site?.label} style={{width:72,height:54,objectFit:"cover",borderRadius:7,border:"1px solid rgba(76,175,80,.4)"}}/>
+                                          <div style={{position:"absolute",bottom:0,left:0,right:0,background:"rgba(0,0,0,.55)",borderRadius:"0 0 7px 7px",fontSize:9,color:"#e8f5e9",textAlign:"center",padding:"2px 0"}}>{site?.icon} {site?.label.substring(0,5)}</div>
+                                        </div>
+                                      </a>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              <div style={{fontSize:10,color:"rgba(232,245,233,.2)"}}>{r.ts}</div>
+                            </div>
+                          ))}
+                          {!submissions.length && <div style={{textAlign:"center",padding:24,color:"rgba(232,245,233,.3)",fontSize:13}}>아직 참가 데이터가 없습니다.</div>}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </Card>
+              )}
+            </div>
+          </>
+        )}
         <Footer/>
       </div>
     </div>
