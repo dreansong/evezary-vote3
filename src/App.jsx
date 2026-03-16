@@ -284,7 +284,7 @@ function MainApp({ onAdmin }) {
               </div>
             )}
 
-            <input value={voterName} onChange={e=>setVoterName(e.target.value)} placeholder="투표자 이름을 입력해주세요 (필수)" maxLength={20} style={{...S.input,marginBottom:12}}/>
+            <input value={voterName} onChange={e=>setVoterName(e.target.value)} placeholder="투표자의 이름(대리점명)을 입력해주세요 (필수)" maxLength={20} style={{...S.input,marginBottom:12}}/>
 
             <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:14}}>
               {CANDIDATES.map((c,i)=>{
