@@ -85,7 +85,7 @@ async function fbLoadDonations() {
 
 // ── 조성지 데이터 ──────────────────────────────────────────
 const SITES = [
-  { id:"s0", icon:"🌲", year:1987, label:"기업림 육림활동",         loc:"양평",    trees:15020, area:"육림", desc:"1987~2013년 기업림 육림활동 15,020주" },
+  { id:"s0", icon:"🌲", year:1987, label:"기업림 육림활동",         loc:"양평",    trees:15020, area:"6만평", desc:"1987~2013년 기업림 육림활동 15,020주" },
   { id:"s1", icon:"🏔️", year:2014, label:"양평기업림 탄소상쇄숲",   loc:"양평",    trees:1000,  area:"9.97ha", desc:"2014년 조성, 9.97ha" },
   { id:"s2", icon:"🌳", year:2014, label:"암사동 탄소상쇄숲 공원",   loc:"강동구",  trees:900,   area:"0.54ha", desc:"강동구 2014년, 0.54ha" },
   { id:"s3", icon:"🌿", year:2015, label:"둔촌동 탄소상쇄숲 공원",   loc:"강동구",  trees:443,   area:"0.39ha", desc:"강동구 2015년, 0.39ha" },
@@ -744,11 +744,11 @@ function EventPage({ onBack }) {
               <ShimmerBg/>
               <div style={{fontSize:10,color:"#7CB342",letterSpacing:3,fontWeight:600,marginBottom:8}}>🌲 이벤트 개요</div>
               <div style={{fontFamily:"'Noto Serif KR',serif",fontSize:18,fontWeight:700,color:"#fff",lineHeight:1.5,marginBottom:10}}>
-                이브자리가 심은 숲을 직접 걸어보세요
+                이브자리가 심은 숲을 플로깅하며 걸어보세요
               </div>
               <div style={{fontSize:13,color:"rgba(232,245,233,.55)",lineHeight:1.8,marginBottom:14}}>
-                40년간 조성한 탄소상쇄숲 10곳 중 <strong style={{color:"#7CB342"}}>5곳 이상</strong> 방문 후<br/>
-                각 장소에서 찍은 인증사진을 제출하시면 경품을 드립니다.
+                40년간 조성한 탄소상쇄숲 9곳 중 <strong style={{color:"#7CB342"}}>5곳 이상</strong> 방문 후<br/>
+                각 장소에서 찍은 인증사진을 제출하시면 소정의 경품을 드립니다.(안내판주변인증사진)
               </div>
               <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
                 {[
