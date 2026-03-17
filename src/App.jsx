@@ -20,7 +20,7 @@ const CLOUDINARY_CLOUD = "djnqo6kgj";
 const CLOUDINARY_PRESET = "evevary_event";
 
 const CANDIDATES = [
-  { id:"a", name:"이브자리숲1호재단",         en:"EVEZARY FOREST No.1 Foundation",        color:"#2E6B3E", accent:"#4CAF50" },
+  { id:"a", name:"이브자리숲가꾸기재단",         en:"EVEZARY FOREST CARE Foundation",        color:"#2E6B3E", accent:"#4CAF50" },
   { id:"b", name:"이브자리탄소숲1호재단",        en:"EVEZARY CARBON FOREST No.1 Foundation", color:"#1B5E20", accent:"#388E3C" },
   { id:"c", name:"이브자리꿈의숲재단",           en:"EVEZARY DREAM FOREST Foundation",        color:"#33691E", accent:"#7CB342" },
   { id:"d", name:"이브자리시민의숲재단",           en:"EVEZARY Citizens' FOREST Foundation",        color:"#37474F", accent:"#78909C" },
@@ -85,7 +85,7 @@ async function fbLoadDonations() {
 
 // ── 조성지 데이터 ──────────────────────────────────────────
 const SITES = [
-  { id:"s0", icon:"🌲", year:1987, label:"기업림 육림활동",         loc:"양평",    trees:15020, area:"6만평", desc:"1987~2013년 기업림 육림활동 15,020주" },
+  { id:"s0", icon:"🌲", year:1987, label:"기업림 육림활동외 기관기부",         loc:"양평",    trees:15020, area:"6만평", desc:"1987~2013년 기업림 육림활동 15,020주" },
   { id:"s1", icon:"🏔️", year:2014, label:"양평기업림 탄소상쇄숲",   loc:"양평",    trees:1000,  area:"9.97ha", desc:"2014년 조성, 9.97ha" },
   { id:"s2", icon:"🌳", year:2014, label:"암사동 탄소상쇄숲 공원",   loc:"강동구",  trees:900,   area:"0.54ha", desc:"강동구 2014년, 0.54ha" },
   { id:"s3", icon:"🌿", year:2015, label:"둔촌동 탄소상쇄숲 공원",   loc:"강동구",  trees:443,   area:"0.39ha", desc:"강동구 2015년, 0.39ha" },
