@@ -95,7 +95,7 @@ const SITES = [
   { id:"s7", icon:"💧", year:2024, label:"양수리 탄소저감숲",        loc:"한강유역청",trees:2005, area:"0.61ha", desc:"한강유역청 2024년, 0.61ha" },
   { id:"s8", icon:"🌸", year:2024, label:"보라매공원 새록새록 정원", loc:"보라매공원",trees:2000, area:"200평",  desc:"새록새록 정원 200평, 2,000주 식재기증" },
 ];
-const REQUIRED_VISITS = 5;
+const REQUIRED_VISITS = 3;
 const EVENT_ADMIN_PW = "evezary2026";
 
 // Firebase helpers for event
@@ -254,8 +254,8 @@ function MainApp({ onAdmin, onEvent }) {
         <div onClick={onEvent} className="chov" style={{background:"linear-gradient(135deg,#0d3320,#1a5c38)",border:"1px solid rgba(76,175,80,.35)",borderRadius:18,padding:"16px 20px",marginBottom:16,cursor:"pointer",animation:"fadeUp .6s .05s ease both",boxShadow:"0 4px 24px rgba(46,107,62,.3)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
             <div>
-              <div style={{fontSize:10,color:"#7CB342",letterSpacing:3,fontWeight:600,marginBottom:5}}>🗺️ 탄소상쇄숲 방문 인증 이벤트</div>
-              <div style={{fontFamily:"'Noto Serif KR',serif",fontSize:15,fontWeight:700,color:"#e8f5e9",lineHeight:1.4}}>10곳 중 5곳 방문하고<br/><span style={{color:"#7CB342"}}>인증사진 제출</span>하면 경품 증정!</div>
+              <div style={{fontSize:10,color:"#7CB342",letterSpacing:3,fontWeight:600,marginBottom:5}}>🗺️ 탄소상쇄숲 방문 인증 이벤트 · 2026.04.01 – 04.30</div>
+              <div style={{fontFamily:"'Noto Serif KR',serif",fontSize:15,fontWeight:700,color:"#e8f5e9",lineHeight:1.4}}>10곳 중 3곳 방문하고<br/><span style={{color:"#7CB342"}}>인증사진 제출</span>하면 경품 증정!</div>
               <div style={{fontSize:11,color:"rgba(232,245,233,.45)",marginTop:5}}>총 26,393주 · 17.87ha · 축구장 약 22개 규모</div>
             </div>
             <div style={{textAlign:"center",flexShrink:0}}>
@@ -747,15 +747,15 @@ function EventPage({ onBack }) {
                 이브자리가 심은 숲을 플로깅하며 걸어보세요
               </div>
               <div style={{fontSize:13,color:"rgba(232,245,233,.55)",lineHeight:1.8,marginBottom:14}}>
-                40년간 조성한 탄소상쇄숲 9곳 중 <strong style={{color:"#7CB342"}}>5곳 이상</strong> 방문 후<br/>
+                40년간 조성한 탄소상쇄숲 10곳 중 <strong style={{color:"#7CB342"}}>3곳 이상</strong> 방문 후<br/>
                 각 장소에서 찍은 인증사진을 제출하시면 소정의 경품을 드립니다.(안내판주변인증사진)
               </div>
               <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
                 {[
                   {icon:"🌳", val:`${totalTrees.toLocaleString()}주`, label:"총 식재"},
                   {icon:"🗺️", val:"17.87ha", label:"총 면적"},
-                  {icon:"⚽", val:"약 22개", label:"축구장 크기"},
-                  {icon:"📍", val:"10곳", label:"조성지"},
+                  {icon:"📍", val:"10곳 중 3곳", label:"방문 조건"},
+                  {icon:"📅", val:"04.01~04.30", label:"이벤트 기간"},
                 ].map(({icon,val,label}) => (
                   <div key={label} style={{flex:1,minWidth:70,background:"rgba(76,175,80,.07)",border:"1px solid rgba(76,175,80,.15)",borderRadius:12,padding:"12px 8px",textAlign:"center"}}>
                     <div style={{fontSize:18,marginBottom:4}}>{icon}</div>
@@ -989,7 +989,7 @@ function Card({ children, style }) { return <div style={{background:"rgba(255,25
 function ShimmerBg() { return <div style={{position:"absolute",top:0,left:"-100%",width:"60%",height:"100%",background:"linear-gradient(90deg,transparent,rgba(184,148,58,.06),transparent)",animation:"shimmer 5s 1s infinite",pointerEvents:"none"}}/>; }
 function Shimmer() { return <div style={{position:"absolute",top:0,left:"-100%",width:"60%",height:"100%",background:"linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)",animation:"shimmer 2.5s infinite"}}/>; }
 function Loader() { return <div style={{textAlign:"center",padding:60,color:"rgba(232,245,233,.4)"}}><div style={{fontSize:32,marginBottom:12}}>🌿</div><div style={{fontSize:13,letterSpacing:2}}>불러오는 중...</div></div>; }
-function Footer() { return <div style={{textAlign:"center",marginTop:32,paddingTop:18,borderTop:"1px solid rgba(255,255,255,.06)"}}><div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontStyle:"italic",color:"rgba(232,245,233,.18)",letterSpacing:4}}>EVEZARY</div><div style={{fontSize:10,color:"rgba(232,245,233,.14)",marginTop:4,letterSpacing:2}}>이브자리 공익재단 네이밍 공모 · 2026.03.15 – 04.15</div></div>; }
+function Footer() { return <div style={{textAlign:"center",marginTop:32,paddingTop:18,borderTop:"1px solid rgba(255,255,255,.06)"}}><div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontStyle:"italic",color:"rgba(232,245,233,.18)",letterSpacing:4}}>EVEZARY</div><div style={{fontSize:10,color:"rgba(232,245,233,.14)",marginTop:4,letterSpacing:2}}>이브자리 공익재단 네이밍 공모 · 2026.03.15 – 04.30</div></div>; }
 
 const S = {
   root:{ minHeight:"100vh", background:"linear-gradient(160deg,#0a1a0e 0%,#0f2515 45%,#162d1a 100%)", fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif", color:"#e8f5e9", position:"relative", overflowX:"hidden" },
